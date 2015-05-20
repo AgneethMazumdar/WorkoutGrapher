@@ -7,7 +7,7 @@ This script parses through the contents of a training spreedsheet (csv) and grap
 * [Python 2.7](https://www.python.org/) 
 * [NumPy] (http://www.numpy.org/)
 * [matplotlib] (http://matplotlib.org/)
-* [Seaborne] (http://stanford.edu/~mwaskom/software/seaborn/installing.html)
+* [Seaborn] (http://stanford.edu/~mwaskom/software/seaborn/installing.html)
 
 # CSV File Formatting
 
