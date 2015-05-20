@@ -1,6 +1,6 @@
 # Purpose
 
-This script parses through the contents of a training spreedsheet (csv) and graphs the user’s progress given an input of a minimum set and rep scheme. 
+This script parses through the contents of a training spreedsheet (csv) and graphs the user’s progress given an input of a minimum set and rep scheme. This can be applicable in analyzing the training log of a powerlifter, weightlifter, or a general weight training enthusiast. 
 
 # Requirements
 
