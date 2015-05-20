@@ -1,3 +1,6 @@
+# Created by Agneeth Mazumdar
+# Released under the MIT License 
+
 import matplotlib.pyplot as plt
 import datetime as dt
 import matplotlib.dates as mdates
@@ -150,4 +153,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
