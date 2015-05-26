@@ -1,5 +1,5 @@
-# Created by Agneeth Mazumdar
-# Released under the MIT License 
+import csv
+import string
 
 import matplotlib.pyplot as plt
 import datetime as dt
@@ -7,75 +7,88 @@ import matplotlib.dates as mdates
 import seaborn as sns
 import numpy as np
 
-import itertools
-import csv
-import string
-
 class Exercises(object):
 
-    def __init__(self, name, weight, sets, reps):
+    def __init__(self, name):
         self.name = name
-        self.weight = weight
-        self.sets = sets
-        self.reps = reps
+        self.weights = []
+        self.sets = []
+        self.reps = []
 
-def get_names():
+    def addWeight(self, weight):
+        self.weights.append(weight)
 
-    # We have this function so that we don't need to know the number of exercises beforehand
+    def addSets(self, eset):
+        self.sets.append(eset)
+
+    def addReps(self, reps):
+        self.reps.append(reps)
+
+def create_exercise_objects():
+
+    exercises, dates = [], []
 
     with open('WorkoutData.csv', 'rb') as workout_data: 
         csv_workout_data = csv.reader(workout_data)
 
-        names = [] 
-
         for index, row in enumerate(csv_workout_data):
+            
+            dates.append(row[0])
 
-            if index < 1:
-                names.append(row)
+            if index == 0:
+                exercise_names = row[1:]
 
-    names = list(itertools.chain(*names))
-    names = names[1:],
-    names = list(itertools.chain(*names))
+        dates = dates[1:]
 
-    return names 
+        for index, value in enumerate(exercise_names):
+            exercises.append(Exercises(exercise_names[index]))
 
-def get_dates_and_wsr(counter, wsr_cont):
+    return exercises, exercise_names, dates
 
-    loop_counter = counter
-    wsr = wsr_cont
-    
-    with open('WorkoutData.csv', 'rb') as workout_data:
+def make_wsr_dictionary(counter, names):
+
+    temp, catalog = [], {}
+
+    with open('WorkoutData.csv', 'rb') as workout_data: 
         csv_workout_data = csv.reader(workout_data)
 
-        dates = [] 
+        try:
+            for index, row in enumerate(csv_workout_data):
+                temp.append(row[counter+1])
 
-        for index, row in enumerate(csv_workout_data):
+            catalog[names[counter]] = temp[1:]
+            temp = []
+        except:
+            pass
 
-            dates.append(row[0])
-            wsr.append(row[loop_counter]) # For the loop in main
+    return catalog
 
-        nested_wsr = [wsr[index:index+len(dates)] for index in xrange(0, len(wsr), len(dates))]
+def start_filtering(full_catalog):
 
-    # We're filtering out the names from wsr and turning it into a nested list 
+    for key, value in full_catalog.iteritems():
+        for index, element in enumerate(value):
 
-    for sublist in nested_wsr:
-        del sublist[0]
+            value[index] = string.replace(value[index], ' ', 'x')
+            value[index] = value[index].split('x')
+            
+            if len(value[index]) < 3:
+                value[index] = [0, 0, 0]
 
-    dates = dates[1:]
+    return full_catalog
 
-    # This is where we'll filter the workout data
+def append_attributes(exercises, full_catalog, names):
 
-    for e_index, value in enumerate(nested_wsr): # triple nested list... exercise --> workout --> wsr
+    for index, value in enumerate(names):
+        full_catalog[names[index]]=  map(list, zip(*full_catalog[names[index]]))
 
-        for w_index, value_2 in enumerate(dates):
+    for index, value in enumerate(names):
+        weights_sets_reps = full_catalog[names[index]]
 
-            if nested_wsr[e_index][w_index] == '':
-                nested_wsr[e_index][w_index] = '0 0x0'
-        
-            nested_wsr[e_index][w_index] = string.replace(nested_wsr[e_index][w_index], ' ', 'x')
-            nested_wsr[e_index][w_index] = nested_wsr[e_index][w_index].split('x')
+        exercises[index].addWeight(map(int, weights_sets_reps[0]))
+        exercises[index].addSets(map(int, weights_sets_reps[1]))
+        exercises[index].addReps(map(int, weights_sets_reps[2]))
 
-    return dates, nested_wsr
+    return exercises
 
 def get_graphing_parameters():
     
@@ -83,53 +96,32 @@ def get_graphing_parameters():
     min_sets = raw_input('What are the minimum number of sets to graph? \n')
     rep_range = raw_input('What minimum rep range do you want to graph? \n')
 
-    return exercise, min_sets, rep_range
+    return exercise, int(min_sets), int(rep_range)
 
 def main():
 
-    wsr, weight, sets, reps, = [], [], [], []
+    temporary_dates, temporary_weights, full_catalog = [], [], {}
+    place_holder = None
 
-    name_index = get_names()
+    exercises, names, dates = create_exercise_objects()
 
-    for index in range(1, len(name_index)+1):
-        dates, nested_wsr = get_dates_and_wsr(index, wsr) 
+    for index, value in enumerate(exercises):
+        full_catalog.update(make_wsr_dictionary(index, names))
 
-    # Sorting the weights, sets, and reps into their respective exercise
-
-    for e_index, value in enumerate(nested_wsr):
-        for w_index, value in enumerate(dates):
-
-            weight.append(nested_wsr[e_index][w_index][0])
-            sets.append(nested_wsr[e_index][w_index][1])
-            reps.append(nested_wsr[e_index][w_index][2])
-
-        weight = [int(index) for index in weight]
-        sets = [int(index) for index in sets]
-        reps = [int(index) for index in reps]
-
-        name_index[e_index] = Exercises(name_index[e_index], weight, sets, reps)
-
-        weight, sets, reps = [], [], []
-
-    # Prompt user to choose what exercise to graph and the minimum sets and reps
+    full_catalog = start_filtering(full_catalog)
+    exercises = append_attributes(exercises, full_catalog, names)
 
     exercise, min_sets, rep_range = get_graphing_parameters()
 
-    for index, value in enumerate(nested_wsr):
-        if exercise == name_index[index].name:
-            exercise = index
+    for name_index, value in enumerate(names):
+        if value == exercise:
+            place_holder = name_index
 
-    min_sets = int(min_sets)
-    rep_range = int(rep_range)
-
-    # Sorting out what to graph based on user input
-
-    temporary_dates, temporary_weights = [], []
-
-    for index in range(len(dates)):
-        if name_index[exercise].sets[index] > min_sets-1 and name_index[exercise].reps[index] > rep_range-1:
-            temporary_dates.append(dates[index])
-            temporary_weights.append(name_index[exercise].weight[index])
+    for index, value in enumerate(dates):
+        if exercises[place_holder].sets[0][index] >= min_sets:
+            if exercises[place_holder].reps[0][index] >= rep_range:
+                temporary_dates.append(dates[index])
+                temporary_weights.append(exercises[place_holder].weights[0][index])
 
     for index, value in enumerate(temporary_weights):
         if value == 0:
@@ -147,7 +139,7 @@ def main():
 
     plt.xlabel('Time')
     plt.ylabel('Weight (lbs)')
-    plt.title(name_index[exercise].name) 
+    plt.title(names[place_holder]) 
 
     plt.show()
 
