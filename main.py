@@ -1,3 +1,6 @@
+# Created by Agneeth Mazumdar
+# Released under the MIT License
+
 import csv
 import string
 
